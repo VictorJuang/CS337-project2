@@ -46,6 +46,7 @@ METHODS = {
     "blend",
     "render",
     "toss",
-    "thread"
+    "thread",
+    "shred"
   ]
 }
