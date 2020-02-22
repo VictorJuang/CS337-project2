@@ -7,6 +7,8 @@ import requests
 import string
 from cooktool import COOK_TOOL
 from methods import METHODS
+from jpfood import JP_FOOD
+from unimportant_words import UNIMPORTANT_WORDS
 
 def splitUnit(string):
     for idx in range(len(string)):
@@ -38,30 +40,34 @@ def parse_data(soup, url):
 
     # data setucture
     recipe = dict()
+    
+    #
+    title_pattern = re.compile(r'<title>[a-zA-Z\s]+')
+    title = re.findall(title_pattern, str(soup))
+    recipe['title'] = title[0].replace('<title>', '')[:-1]
+    
+    # ingredient
     update_ingredient = []
     for i in range(len(ingredients)):
         update_ingredient.append(ingredients[i][28:-7])    
  
-    measurement = ['slice', 'slices', 'can', 'cans', 'teaspoon', 'tablespoon', 'cup', 'ounce', 'pint', 'quart', 'gallon',\
-                   'pound', 'dash', 'pinch', 'drop', 'peck', 'smidgen', 'saltspoon', 'scruple', 'coffeespoon', 'dessertspoon',\
-                   'wineglass', 'gill', 'teacup', 'pottle', 'dram', 'teaspoons', 'tablespoons', 'cups', 'ounces', 'pints',\
-                   'quarts', 'gallons', 'pounds', 'dashes', 'pinches', 'drops', 'pecks', 'smidgens', 'saltspoons', 'scruples',\
-                   'coffeespoons', 'dessertspoons', 'wineglasses', 'gills', 'teacups', 'pottles', 'drams']
+    measurement = ['package', 'packages', 'carton', 'cartons', 'slice', 'slices', 'can', 'cans', 'teaspoon', 'tablespoon', 'cup', 'ounce', 'pint', 'quart', 'gallon', 'pound', 'dash', 'pinch', 'drop', 'peck', 'smidgen', 'saltspoon', 'scruple', 'coffeespoon', 'dessertspoon', 'wineglass', 'gill', 'teacup', 'pottle', 'dram', 'teaspoons', 'tablespoons', 'cups', 'ounces', 'pints', 'quarts', 'gallons', 'pounds', 'dashes', 'pinches', 'drops', 'pecks', 'smidgens', 'saltspoons', 'scruples', 'coffeespoons', 'dessertspoons', 'wineglasses', 'gills', 'teacups', 'pottles', 'drams']
 
     measure = []
     ingred = []
     quantity = []
     for i in range(len(update_ingredient)):
         flag = True
-        for item in measurement:
-            if item in update_ingredient[i].lower().split():
-                measure.append(item)
-                ing_quant = update_ingredient[i].split(' '+item+' ')
+        for word in update_ingredient[i].lower().split():
+            if word in measurement:
+                
+                ing_quant = update_ingredient[i].split(' '+word+' ')
                 try: 
                     ingred.append(ing_quant[1])
                 except:
                     flag = True
                     break
+                measure.append(word)
                 quantity.append(ing_quant[0])
                 flag = False
                 break
@@ -70,9 +76,11 @@ def parse_data(soup, url):
             num_pattern = re.compile(r'\d+\/\d+|\d+')
             quan = re.findall(num_pattern, update_ingredient[i]) # only care about the first item, quant always shows at the beginning
             if quan:
+                #print (quan)
                 quantity.append(quan[0])
                 ingred.append(re.sub(quan[0]+' ', '', update_ingredient[i]))
             else:
+                quantity.append('None')
                 ingred.append(update_ingredient[i])
 
     Descriptor = []
@@ -88,7 +96,7 @@ def parse_data(soup, url):
             refined_ingred.append(item)
         Descriptor.append('None')
     
-    recipe['title'] = 'unknown'
+    
     recipe['ingredient'] = refined_ingred
     recipe['measurement'] = measurement
     recipe['quantity'] = quantity
@@ -108,10 +116,11 @@ def parse_data(soup, url):
         item_tmp2 = re.split("\n", item_tmp1[1])
         item_tmp3_list = re.split(r'\.|;',item_tmp2[0].lower())
         #rough_direction_list.append(item_tmp2[0].translate(str.maketrans('', '', string.punctuation)).lower())
-        for subitem in item_tmp3_list:
-            if subitem != '':
-                direction_list.append(subitem.translate(str.maketrans('', '', string.punctuation)))
- 
+        #for subitem in item_tmp3_list:
+        #    if subitem != '':
+        #        direction_list.append(subitem.translate(str.maketrans('', '', string.punctuation)))
+        direction_list.append(item_tmp2[0].lower())
+
     TIME_WORD = {
         'hours': [re.compile(r'(about )?\d+ h(ou)?rs?($|\W)'), re.compile(r'\d+ to \d+ h(ou)?rs?($|\W)')],
         'minutes': [re.compile(r'(about )?\d+ min(ute)?s?($|\W)'), re.compile(r'\d+ to \d+ min(ute)?s?($|\W)')],
@@ -124,7 +133,11 @@ def parse_data(soup, url):
     recipe['tools'] = []
     recipe['steps'] = {}
     count = 1
+    
+    ingredient_count = [0] * len(recipe['ingredient'])
+    
     for item in direction_list:
+        
         recipe['steps'][count] = dict()
         recipe['steps'][count]['ingredient'] = []
         recipe['steps'][count]['measurement'] = []
@@ -136,15 +149,23 @@ def parse_data(soup, url):
         recipe['steps'][count]['methods']['other'] = []
         recipe['steps'][count]['tools'] = []
         recipe['steps'][count]['time'] = []
-        
+
         for idx in range(len(recipe['ingredient'])):
-            check_word = recipe['ingredient'][idx]
-            if check_word in item:
-                recipe['steps'][count]['ingredient'].append(check_word)
-                recipe['steps'][count]['measurement'].append(recipe['measurement'][idx])
-                recipe['steps'][count]['quantity'].append(recipe['quantity'][idx])
-                recipe['steps'][count]['descriptor'].append(recipe['descriptor'][idx])
-                recipe['steps'][count]['preparation'].append(recipe['preparation'][idx])
+            if ingredient_count[idx] == 1:
+                continue
+            check_words = recipe['ingredient'][idx]
+            check_word_list = check_words.split()
+            for check_word in check_word_list:
+                if check_word in UNIMPORTANT_WORDS:
+                    continue
+                if check_word in item:
+                    recipe['steps'][count]['ingredient'].append(check_words)
+                    recipe['steps'][count]['measurement'].append(recipe['measurement'][idx])
+                    recipe['steps'][count]['quantity'].append(recipe['quantity'][idx])
+                    recipe['steps'][count]['descriptor'].append(recipe['descriptor'][idx])
+                    recipe['steps'][count]['preparation'].append(recipe['preparation'][idx])
+                    ingredient_count[idx] = 1
+                    break
         
         for check_word in COOK_TOOL:
             if len(re.findall(COOK_TOOL[check_word], item))> 0:
@@ -180,9 +201,7 @@ def parse_data(soup, url):
         count += 1
     
     recipe['nutritions'] = scrape_nutrition(url)
-    return recipe
-    
-    
+    return recipe  
     
 def fetch_url():
     url = ""
@@ -206,7 +225,21 @@ def fetch_url():
         html_content = urllib.request.urlopen(req).read()
         soup = BeautifulSoup(html_content, 'html.parser')
     return soup, url
-
+    
+    
+def japanese_style(recipe):
+    # check stype
+    for check_word in JP_FOOD['style_check']:
+        if check_word in recipe['title']:
+            print('This recipe is japanese style.')
+            return
+            
+    # search ingredient
+    for check_word in JP_FOOD['style_check']:
+        if check_word in recipe['ingredient']:
+            print('This recipe is japanese style.')
+            return
+            
 def main():
     # get web info
     soup, url = fetch_url()
@@ -295,7 +328,19 @@ def main():
                     break
                 
         elif option == "2":
-            break  
+            while True:
+                print('Select transformation type.')
+                print('1. To vegetarian ')
+                print('2. From vegetarian ')
+                print('3. To Japanese style')
+                print('4. To Koren style')
+                print('5. Easy to DIY')
+                print('6. Double size')
+                print('7. Half size')
+                print('8. Cooking method')
+                print('9. Go back')
+                sub_option = input()
+                
         elif option == "3":
             break             
         else:
