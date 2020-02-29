@@ -54,7 +54,7 @@ class RecipeFetcher:
     
 rf = RecipeFetcher()
 meat_lasagna = rf.search_recipes('wellington steak')[0]
-
+print(meat_lasagna)
 print(rf.scrape_recipe(meat_lasagna))
 
 """

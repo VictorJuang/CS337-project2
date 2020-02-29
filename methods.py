@@ -47,6 +47,9 @@ METHODS = {
     "render",
     "toss",
     "thread",
-    "shred"
+    "shred",
+    "combine",
+    "repeat",
+    "serve"
   ]
 }
