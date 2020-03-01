@@ -12,6 +12,7 @@ from cooktool import COOK_TOOL
 from methods import METHODS
 from jpfood import JP_FOOD
 from unimportant_words import UNIMPORTANT_WORDS
+from nltk.tokenize import sent_tokenize
 
 def splitUnit(string):
     for idx in range(len(string)):
@@ -105,6 +106,7 @@ def parse_data(soup, url):
     recipe['quantity'] = quantity
     recipe['descriptor'] = Descriptor
     recipe['preparation'] = Preparation
+    recipe['directions'] = []
     
     #=========================================
     # parse directions
@@ -115,8 +117,10 @@ def parse_data(soup, url):
     direction_list = []
     rough_direction_list = []
     for item in direction:
+        
         item_tmp1 = re.split("<span class=\"recipe-directions__list--item\">", item)
         item_tmp2 = re.split("\n", item_tmp1[1])
+        recipe['directions'].append(item_tmp2[0].lower())
         item_tmp3_list = re.split(r'\.|;',item_tmp2[0].lower())
         #rough_direction_list.append(item_tmp2[0].translate(str.maketrans('', '', string.punctuation)).lower())
         #for subitem in item_tmp3_list:
@@ -245,15 +249,15 @@ def change_method2(recipe):
     for i in range(1,len(recipe['steps'])+1):
         recipe['steps'][i]['methods']['primary'] = [to_method if x == from_method else x for x in recipe['steps'][i]['methods']['primary']]       
 
-def japanese_style(recipe):
+def japanese_style(recipe, FOOD_TYPE):
     # check stype
-    for check_word in JP_FOOD['style_check']:
+    for check_word in FOOD_TYPE['style_check']:
         if check_word in recipe['title']:
             print('This recipe is in japanese style.')
             return
             
     # search ingredient
-    for check_word in JP_FOOD['style_check']:
+    for check_word in FOOD_TYPE['style_check']:
         for ingred in recipe['ingredient']:
             if check_word in ingred:
                 print('This recipe is in japanese style.')
@@ -261,44 +265,56 @@ def japanese_style(recipe):
     
     # check ingredient
     found = 0
-    for check_word in JP_FOOD['change_dict']:
-        new_word = random.choice(JP_FOOD['change_dict'][check_word])
+    for check_word in FOOD_TYPE['change_dict']:
+        new_word = random.choice(FOOD_TYPE['change_dict'][check_word])
         for idx in range(len(recipe['ingredient'])):
             ingred = recipe['ingredient'][idx]
             if check_word in ingred:
-                print("change ingredient")
+                print("change ingredient: " + ingred + " -> "+ new_word)
                 found = 1
                 recipe['ingredient'][idx] = new_word
-        for i in range(1,len(recipe['steps'])+1):
-            for idx in range(len(recipe['steps'][i]['ingredient'])):
-                ingred = recipe['ingredient'][idx]
-                if check_word in ingred:
-                    recipe['ingredient'][idx] = new_word
+        if found == 1:
+            for i in range(1,len(recipe['steps'])+1):
+                for idx in range(len(recipe['steps'][i]['ingredient'])):
+                    ingred = recipe['steps'][i]['ingredient'][idx]
+                    if check_word in ingred:
+                        old_word = recipe['steps'][i]['ingredient'][idx]
+                        recipe['steps'][i]['ingredient'][idx] = new_word
+                        recipe['directions'][i-1] = re.sub('(^|\W)'+old_word+'($|\W)', ' ' + check_word + ' ', recipe['directions'][i-1])
+                        recipe['directions'][i-1] = re.sub('(^|\W)'+check_word+'($|\W)', ' ' +new_word + ' ', recipe['directions'][i-1])
+                        break
+                
+
+                
     # change cook method
     for idx in range(len(recipe['methods']['primary'])):
         method = recipe['methods']['primary'][idx]
-        if method not in JP_FOOD['primary_methods']:
-            new_method = random.choice(JP_FOOD['primary_methods'])
+        if method not in FOOD_TYPE['primary_methods']:
+            new_method = random.choice(FOOD_TYPE['primary_methods'])
             recipe['methods']['primary'][idx] = new_method
             for i in range(1,len(recipe['steps'])+1):
                 for nidx in range(len(recipe['steps'][i]['methods']['primary'])):
-                    if recipe['steps'][i]['methods']['primary']['nidx'] == method:
-                        recipe['steps'][i]['methods']['primary']['nidx'] = new_method
+                    if recipe['steps'][i]['methods']['primary'][nidx] == method:
+                        recipe['steps'][i]['methods']['primary'][nidx] = new_method
+                        recipe['directions'][i-1] = re.sub('(^|\W)'+method+'($|\W)', ' ' + new_method + ' ', recipe['directions'][i-1])
+                
     # add ingredient
     add_item = None
     add_item_word = None
-    for check_word in JP_FOOD['add_item_method']:
+    for check_word in FOOD_TYPE['add_item_method']:
         if check_word in recipe['methods']['other']:
-            print("add item")
-            add_item = random.choice(JP_FOOD['add_item_ingred'])
+            add_item = random.choice(FOOD_TYPE['add_item_ingred'])
+            print("add item: " + str(add_item))
             add_item_word = check_word
             break
+            
     if add_item is not None:
         recipe['quantity'].append(add_item[0])
         recipe['measurement'].append(add_item[1])
         recipe['ingredient'].append(add_item[2])
         recipe['descriptor'].append('None')
         recipe['preparation'].append('None')
+        recipe['methods']['other'].append('add')
         for i in range(1,len(recipe['steps'])+1):
             if add_item_word in recipe['steps'][i]['methods']['other']:
                 recipe['steps'][i]['quantity'].append(add_item[0])
@@ -306,8 +322,78 @@ def japanese_style(recipe):
                 recipe['steps'][i]['ingredient'].append(add_item[2])
                 recipe['steps'][i]['descriptor'].append('None')
                 recipe['steps'][i]['preparation'].append('None') 
+                recipe['steps'][i]['methods']['other'].append('add')
+                temp_list = sent_tokenize(recipe['directions'][i - 1])
+                temp_direct_len = len(recipe['directions'][i - 1])
+                for j in range(temp_direct_len):
+                    if add_item_word in temp_list[j]:
+                        temp_list.insert(j, 'add ' + add_item[2] + '.')
+                        break
+                recipe['directions'][i - 1] = ' '.join(temp_list)
                 break
-            
+                
+    if add_item is None:
+        add_item = random.choice(FOOD_TYPE['add_item_ingred'])
+        print("add item - type 2: " + str(add_item))
+        add_step = 1
+        if len(recipe['steps']) > 2:
+            add_step = random.choice([1,2])
+        recipe['quantity'].append(add_item[0])
+        recipe['measurement'].append(add_item[1])
+        recipe['ingredient'].append(add_item[2])
+        recipe['descriptor'].append('None')
+        recipe['preparation'].append('None')    
+        recipe['steps'][add_step]['quantity'].append(add_item[0])
+        recipe['steps'][add_step]['measurement'].append(add_item[1])
+        recipe['steps'][add_step]['ingredient'].append(add_item[2])
+        recipe['steps'][add_step]['descriptor'].append('None')
+        recipe['steps'][add_step]['preparation'].append('None')
+        recipe['methods']['other'].append('add')
+        recipe['steps'][add_step]['methods']['other'].append('add')
+        recipe['directions'][add_step - 1]  += 'add ' + add_item[2] + '.'
+        
+  
+def print_direction(direction_dict):
+    count = 1
+    for item in direction_dict:
+        print('Step'+ str(count)+':')
+        print(item)
+        print()
+        count += 1
+
+
+def print_step(step_dict):
+    for item in step_dict:
+        print('step' + str(item) + ':')
+        print('  ingredients:')
+        for ing_idx in range(len(step_dict[item]['ingredient'])):
+            ing_str = ""
+            if step_dict[item]['quantity'][ing_idx] != 'None':
+                ing_str += step_dict[item]['quantity'][ing_idx] + ' '
+            if step_dict[item]['measurement'][ing_idx] != 'None':
+                ing_str += step_dict[item]['measurement'][ing_idx] + ' '
+            if step_dict[item]['descriptor'][ing_idx] != 'None':
+                ing_str += step_dict[item]['descriptor'][ing_idx] + ' '
+            ing_str += step_dict[item]['ingredient'][ing_idx]
+            if step_dict[item]['preparation'][ing_idx] != 'None':
+                ing_str += ', '
+                for tmp_pre in step_dict[item]['preparation'][ing_idx]:
+                    ing_str += tmp_pre + ' '
+            print('    ' + ing_str)
+        print('  tools:')
+        for tool in step_dict[item]['tools']:
+            print('    ' + tool)
+        print('  primary methods:')
+        for pm in step_dict[item]['methods']['primary']:
+            print('    ' + pm)
+        print('  other methods:')
+        for om in step_dict[item]['methods']['other']:
+            print('    ' + om)
+        print('  time:')
+        for time in step_dict[item]['time']:
+            print('    ' + time)
+        print()
+  
 def main():
     # get web info
     soup, url = fetch_url()
@@ -335,7 +421,8 @@ def main():
                 print('9. Other Cooking Methods')
                 print('10. Steps')
                 print('11. Nutrition')
-                print('12. Go back')
+                print('12. Readable Recipe')
+                print('13. Go back')
                 sub_option = input()
                 
                 if sub_option == '1':
@@ -384,8 +471,10 @@ def main():
                     print()
                 elif sub_option == '10':
                     print('Steps:')
-                    for item in recipe['steps']:
-                        print(recipe['steps'][item])
+                    #for item in recipe['steps']:
+                    #    print('step' + str(item) + ':')
+                    #    print(recipe['steps'][item])
+                    print(print_step(recipe['steps']))
                     print()
                 elif sub_option == '11':
                     print('Nutritions:')
@@ -393,6 +482,10 @@ def main():
                         print(item)
                     print()
                 elif sub_option == '12':
+                    print('Directions:')
+                    print_direction(recipe['directions'])
+                    print()
+                elif sub_option == '13':
                     break
                 
         elif option == "2":
@@ -410,7 +503,7 @@ def main():
                 print('10. Go back')
                 sub_option = input()
                 if sub_option == '3':
-                    japanese_style(recipe)
+                    japanese_style(recipe, JP_FOOD)
                 elif sub_option == '8':
                     print('Enter a primary cooking method.')
                     print(recipe['methods']['primary'])
