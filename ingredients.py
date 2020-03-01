@@ -4,38 +4,61 @@ import urllib.request
 import re
 import random
 import requests
-
-sample_url = "https://www.allrecipes.com/recipe/277917/slow-cooker-cheesy-cauliflower-casserole/"
+import sys
 
 def splitUnit(string):
     for idx in range(len(string)):
         if not string[idx].isnumeric() and string[idx] != "." and string[idx] != "/":
             return string[:idx], string[idx:]
 
-def meatToVege(meat):
+def meatToVege(ingredient):
     randnum = random.randint(2, 4)
 
     tofus = ["soft", "medium", "firm", "extra-firm", "super-firm", "loaf", "silken"]
     mushrooms = ["white button", "crimini", "portobello", "shiitake", "oyster", "enoki", "chanterelle", "porcini", "shimeji", "morel"]
-    roots = ["taro", "sweet potato", "eggplant", "zucchini"]
+    roots = ["taro", "sweet potato", "eggplant", "zucchini", "potato", "lotus root", "beetroot", "cassava", "corn"]
 
-    if "broth" in meat:
+    if "broth" in ingredient:
         return "vegetable broth"
-    if "cream" in meat and ("chicken" in meat or "beef" in meat):
+    if "cream" in ingredient and ("chicken" in ingredient or "beef" in ingredient):
         return "cream"
 
     for food in ["chicken", "beef", "bacon", "ham", "shrimp", "scallops", "clams", "mussels", "crab", "cod", "turkey", "fish", "lamb", "salmon", "tuna", "pot roast", "mahi"]:
-        if food in meat:
+        if food in ingredient:
             if randnum == 2: return random.choice(tofus) + " tofu"
             if randnum == 3: return random.choice(mushrooms) + " mushroom"
             if randnum == 4: return random.choice(roots)
     
-    return meat
+    return ingredient
 
 def VegeToMeat():
     return random.choice([
         "chicken", "beef", "bacon", "ham", "shrimp", "scallops", "clams", "mussels", "crab", "cod", "turkey", "fish", "lamb", "salmon", "tuna", "pot roast", "mahi"
     ])
+
+def toHealthy(ingredient):
+    if "cheese" in ingredient or "cream" in ingredient: return "low-fat " + ingredient
+    elif "butter" in ingredient or "oil" in ingredient: return "extra-virgin olive oil"
+    elif "syrup" in ingredient or "sugar" in ingredient or "honey" in ingredient: return "vanilla"
+    return ingredient
+
+def toVegan(ingredient):
+    if "butter" in ingredient:
+        return "almond butter"
+
+    if "honey" in ingredient:
+        return "vanilla"
+    
+    nots = ["egg", "milk", "cream", "cheese"]
+    for n in nots:
+        if n in ingredient:
+            return random.choice(["cashews", "coconut milk", "almond milk", "avocados"])
+
+    return ingredient
+
+def fromHealthy():
+    num = random.randint(1, 3)
+    return random.sample(["bacon", "butter", "cheese", "ham", "cream"], num)
 
 def get_ingredient(url):
     req = urllib.request.Request(url)
@@ -124,8 +147,8 @@ def update_nutrition(nutritions, typ):
     _nutritions = nutritions.copy()
     for _n in _nutritions:
         for nu in ["fat", "cholesterol", "sodium", "potassium", "protein", "carbohydrates", "iron", "folate", "magnesium"]:
-            if typ == "toVege": delta = (1 - random.random())
-            elif typ == "toMeat": delta = (1 + random.random())
+            if typ == "to_vegetarian" or typ == "to_healthy" or typ == "to_vegan": delta = (1 - random.random())
+            elif typ == "from_vegetarian" or typ == "from_healthy": delta = (1 + random.random())
             if nu in _n["nutrient-name"].lower():
                 if _n.get("daily-value"):
                     _dm = float(_n["nutrient-value"]) * 100 / int(_n["daily-value"].replace("%", "").replace("<", ""))
@@ -135,8 +158,8 @@ def update_nutrition(nutritions, typ):
                     _n["nutrient-value"] = str(float(_n["nutrient-value"]) * (1+random.random()))
         
         for nu in ["fiber", "vitamin", "calcium", "magnesium"]:
-            if typ == "toVege": delta = (1 + random.random())
-            elif typ == "toMeat": delta = (1 - random.random())
+            if typ == "to_vegetarian" or typ == "to_healthy" or typ == "to_vegan": delta = (1 + random.random())
+            elif typ == "from_vegetarian" or typ == "from_healthy": delta = (1 - random.random())
             if nu in _n["nutrient-name"].lower():
                 if _n.get("daily-value"):
                     _dm = float(_n["nutrient-value"]) * 100 / int(_n["daily-value"].replace("%", "").replace("<", ""))
@@ -147,35 +170,73 @@ def update_nutrition(nutritions, typ):
 
     return _nutritions
 
+def myPart(ingredients, nutritions, descriptor, preparation, measure, quantity, mode="to_vegetarian"):
+    _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity = ingredients.copy(), nutritions.copy(), descriptor.copy(), preparation.copy(), measure.copy(), quantity.copy()
+    for i in range(len(_ingredients)):
+        if mode == "to_vegetarian": 
+            _ingredients[i] = meatToVege(_ingredients[i])
+
+        elif mode == "to_healthy":
+            _ingredients[i] = toHealthy(meatToVege(_ingredients[i]))
+
+        elif mode == "to_vegan":
+            _ingredients[i] = toVegan(meatToVege(_ingredients[i]))
+        
+        elif mode == "from_vegetarian":  
+            _ingredients += [VegeToMeat()]
+            _descriptor = _descriptor + [None] * (len(_ingredients) - len(ingredients))
+            _preparation = _preparation + [None] * (len(_ingredients) - len(ingredients))
+            _measure = _measure + [None] * (len(_ingredients) - len(ingredients))
+            _quantity = _quantity + [None] * (len(_ingredients) - len(ingredients))
+            break
+        
+        elif mode == "from_healthy":
+            _ingredients += fromHealthy()
+            _descriptor = _descriptor + [None] * (len(_ingredients) - len(ingredients))
+            _preparation = _preparation + [None] * (len(_ingredients) - len(ingredients))
+            _measure = _measure + [None] * (len(_ingredients) - len(ingredients))
+            _quantity = _quantity + [None] * (len(_ingredients) - len(ingredients))
+            break
+    print("changed ingredients: ", _ingredients)
+        
+    print("changed nutrition: ")
+    _nutritions = update_nutrition(_nutritions, mode)
+    for n in _nutritions:
+        print(n)
+
+    return _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity
+
 urls = [
-    sample_url,
-    "https://www.allrecipes.com/recipe/53729/fish-tacos/",
-    "https://www.allrecipes.com/recipe/259473/maple-apple-turkey-sausage/",
-    "https://www.allrecipes.com/recipe/50523/clarks-quiche/",
-    "https://www.allrecipes.com/recipe/11758/baked-ziti-i/",
-    "https://www.allrecipes.com/recipe/15925/creamy-au-gratin-potatoes/",
-    "https://www.allrecipes.com/recipe/86230/szechwan-shrimp/",
-    "https://www.allrecipes.com/recipe/23979/shrimp-fettuccine-alfredo/",
-    "https://www.allrecipes.com/recipe/12816/cioppino/",
-]
+        #sample_url,
+        "https://www.allrecipes.com/recipe/53729/fish-tacos/",
+        #"https://www.allrecipes.com/recipe/259473/maple-apple-turkey-sausage/",
+        #"https://www.allrecipes.com/recipe/50523/clarks-quiche/",
+        "https://www.allrecipes.com/recipe/11758/baked-ziti-i/",
+        "https://www.allrecipes.com/recipe/15925/creamy-au-gratin-potatoes/",
+        "https://www.allrecipes.com/recipe/86230/szechwan-shrimp/",
+        "https://www.allrecipes.com/recipe/23979/shrimp-fettuccine-alfredo/",
+        "https://www.allrecipes.com/recipe/12816/cioppino/",
+    ]
+
+try: 
+    mode = sys.argv[1]
+    assert(mode in ["to_vegetarian", "from_vegetarian", "to_healthy", "from_healthy", "to_vegan"])
+except: 
+    print("Usage: python3 ingredients.py to_vegetarian | from_vegetarian | to_healthy | from_healthy | to_vegan")
+    exit(1)
 
 for url in urls:
     ingredients = get_ingredient(url)
-
-    print("original", ingredients)
-
-    _ingredients = ingredients.copy()
-
-    for i in range(len(_ingredients)):
-        _ingredients[i] = meatToVege(_ingredients[i])
-    
-    print("changed", _ingredients)
-
     nutritions = scrape_nutrition(url)
+
+    print("------------------- Start of this receipe -------------------")
+
+    print("original ingredients: ", ingredients)
+
+    print("original nutrition: ")
     for n in nutritions:
         print(n)
-    print("")
-    for n in update_nutrition(nutritions, "toVege"):
-        print(n)
 
-    print("------------------")
+    myPart(ingredients, nutritions, descriptor=[], preparation=[], measure=[], quantity=[], mode=mode)
+
+    print("-------------------- End of this receipe --------------------\n")
