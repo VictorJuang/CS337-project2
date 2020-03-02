@@ -1,4 +1,5 @@
 SOUTHERN_FOOD ={
+    'style': 'southern',
     'style_check':[
         'southern',
         'tidewater',

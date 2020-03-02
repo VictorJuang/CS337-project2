@@ -1,4 +1,5 @@
 KOREAN_FOOD ={
+    'style': 'korean',
     'style_check':[
         'korea',
         'korean',

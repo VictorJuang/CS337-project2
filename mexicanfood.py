@@ -1,4 +1,5 @@
-INDIAN_FOOD ={
+MEXICAN_FOOD ={
+    'style': 'mexican',
     'style_check':[
         'mexican',
         'barbacoa',

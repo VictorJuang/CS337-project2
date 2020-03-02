@@ -151,20 +151,33 @@ def update_nutrition(nutritions, typ):
             elif typ == "from_vegetarian" or typ == "from_healthy": delta = (1 + random.random())
             if nu in _n["nutrient-name"].lower():
                 if _n.get("daily-value"):
-                    _dm = float(_n["nutrient-value"]) * 100 / int(_n["daily-value"].replace("%", "").replace("<", ""))
+                    if int(_n["daily-value"].replace("%", "").replace("<", "")) < 1:
+                        _dm = 0
+                    else:
+                        _dm = float(_n["nutrient-value"]) * 100 /int(_n["daily-value"].replace("%", "").replace("<", ""))
                     _n["nutrient-value"] = str(float(_n["nutrient-value"]) * delta)
-                    _n["daily-value"] = "{} %".format(int(float(_n["nutrient-value"]) * 100 / _dm))
+                    if _dm <= 0:
+                        _n["daily-value"] = "{} %".format(int(0))
+                    else:
+                        _n["daily-value"] = "{} %".format(int(float(_n["nutrient-value"]) * 100 / _dm))
                 else:
                     _n["nutrient-value"] = str(float(_n["nutrient-value"]) * (1+random.random()))
+
         
         for nu in ["fiber", "vitamin", "calcium", "magnesium"]:
             if typ == "to_vegetarian" or typ == "to_healthy" or typ == "to_vegan": delta = (1 + random.random())
             elif typ == "from_vegetarian" or typ == "from_healthy": delta = (1 - random.random())
             if nu in _n["nutrient-name"].lower():
                 if _n.get("daily-value"):
-                    _dm = float(_n["nutrient-value"]) * 100 / int(_n["daily-value"].replace("%", "").replace("<", ""))
+                    if int(_n["daily-value"].replace("%", "").replace("<", "")) < 1:
+                        _dm = 0
+                    else:                
+                        _dm = float(_n["nutrient-value"]) * 100 / int(_n["daily-value"].replace("%", "").replace("<", ""))
                     _n["nutrient-value"] = str(float(_n["nutrient-value"]) * delta)
-                    _n["daily-value"] = "{} %".format(int(float(_n["nutrient-value"]) * 100 / _dm))
+                    if _dm <= 0:
+                        _n["daily-value"] = "{} %".format(int(0))
+                    else:                    
+                        _n["daily-value"] = "{} %".format(int(float(_n["nutrient-value"]) * 100 / _dm))
                 else:
                     _n["nutrient-value"] = str(float(_n["nutrient-value"]) * (1+random.random()))
 

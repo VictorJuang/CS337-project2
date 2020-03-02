@@ -1,4 +1,5 @@
 JP_FOOD ={
+    'style': 'japanese',
     'style_check':[
         'japan',
         'sushi',

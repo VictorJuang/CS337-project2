@@ -1,4 +1,5 @@
 INDIAN_FOOD ={
+    'style': 'indian',
     'style_check':[
         'india',
         'balti',

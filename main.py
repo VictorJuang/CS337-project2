@@ -12,11 +12,15 @@ from cooktool import COOK_TOOL
 from methods import METHODS
 from jpfood import JP_FOOD
 from indianfood import INDIAN_FOOD
+from italianfood import ITALIAN_FOOD
+from koreanfood import KOREAN_FOOD
+from mexicanfood import MEXICAN_FOOD
+from southernfood import SOUTHERN_FOOD
 from unimportant_words import UNIMPORTANT_WORDS
 from nltk.tokenize import sent_tokenize
 from DES_PRE import DES_PRE
 from fractions import Fraction
-from transformation import change_method1, change_method2, change_style, double_size, halve_size, DIT_to_easy_wrapper, my_part_wrapper
+from transformation import change_method1, change_method2, change_style, double_size, halve_size, my_part_wrapper, DIY_to_easy_wrapper
 from load_data import fetch_url, parse_data
 
   
@@ -203,12 +207,16 @@ def main():
                 print('5. From healthy')
                 print('6. To Japanese style')
                 print('7. To Indian style')
-                print('8. Easy to DIY')
-                print('9. Double size')
-                print('10. Half size')
-                print('11. Change Cooking method 1')
-                print('12. Change Cooking method 2')
-                print('13. Go back')
+                print('8. To Italian style')
+                print('9. To Korean style')
+                print('10. To Mexican style')
+                print('11. To Southern style')            
+                print('12. Easy to DIY')
+                print('13. Double size')
+                print('14. Half size')
+                print('15. Change Cooking method 1')
+                print('16. Change Cooking method 2')
+                print('17. Go back')
                 sub_option = input()
                 if sub_option == '1':
                     my_part_wrapper(recipe, "to_vegetarian")
@@ -224,17 +232,25 @@ def main():
                     change_style(recipe, JP_FOOD)
                 elif sub_option == '7':
                     change_style(recipe, INDIAN_FOOD)
-                elif sub_option == '8':   
-                    ratio_input = -1
-                    while ratio_input < 1 and  ratio_input > 0:
-                        print('Enter a number between 0 and 1')
-                        ratio_input = input()
-                    DIT_to_easy_wrapper(recipe, ratio_input)
+                elif sub_option == '8':
+                    change_style(recipe, ITALIAN_FOOD)                    
                 elif sub_option == '9':
-                    double_size(recipe)
+                    change_style(recipe, KOREAN_FOOD)
                 elif sub_option == '10':
-                    halve_size(recipe)
+                    change_style(recipe, MEXICAN_FOOD)
                 elif sub_option == '11':
+                    change_style(recipe, SOUTHERN_FOOD)
+                elif sub_option == '12':   
+                    ratio_input = -1
+                    while ratio_input >= 1 or  ratio_input <= 0:
+                        print('Enter a number between 0 and 1 as the ratio for simplification.')
+                        ratio_input = float(input())
+                    DIY_to_easy_wrapper(recipe, ratio_input)
+                elif sub_option == '13':
+                    double_size(recipe)
+                elif sub_option == '14':
+                    halve_size(recipe)
+                elif sub_option == '15':
                     print('Enter a primary cooking method.')
                     print(recipe['methods']['primary'])
                     from_method = input()
@@ -245,9 +261,9 @@ def main():
                     print(METHODS["primary"])
                     to_method = input()
                     change_method1(recipe, from_method, to_method)
-                elif sub_option == '12':
+                elif sub_option == '16':
                     change_method2(recipe)
-                elif sub_option == '13':
+                elif sub_option == '17':
                     break
                 
         elif option == "3":

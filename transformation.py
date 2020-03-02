@@ -44,14 +44,14 @@ def change_style(recipe, FOOD_TYPE):
     # check stype
     for check_word in FOOD_TYPE['style_check']:
         if check_word in recipe['title']:
-            print('This recipe is in japanese style.')
+            print('This recipe is in ' + FOOD_TYPE['style'] + ' style.')
             return
             
     # search ingredient
     for check_word in FOOD_TYPE['style_check']:
         for ingred in recipe['ingredient']:
             if check_word in ingred:
-                print('This recipe is in japanese style.')
+                print('This recipe is in ' + FOOD_TYPE['style'] + ' style.')
                 return         
     
     # check ingredient
@@ -300,13 +300,7 @@ def halve_size(recipe):
                     pass
                     #print ("quantity error")              
                 count += 1  
-
-def DIT_to_easy_wrapper(recipe, easy_magnitude):
-    recipe['ingredient'], recipe['measurement'], recipe['quantity'], recipe['descriptor'], recipe['preparation'] = \
-      DIY_to_easy(recipe['ingredient'], recipe['measurement'], recipe['quantity'],\
-                  recipe['descriptor'], recipe['preparation'], easy_magnitude, recipe['title'])
-    
-
+   
 def DIY_to_easy(ingredients, measure, quantity, descriptor, preparation, easy_magnitude, title):
     reduced_number = int (len(ingredients) * easy_magnitude)
     not_removed_ingredient = []
@@ -430,3 +424,55 @@ def my_part_wrapper(recipe, mode):
     recipe['preparation'] = _preparation
     recipe['measurement'] = _measure
     recipe['quantity'] = _quantity
+    
+def DIY_to_easy_wrapper(recipe, easy_magnitude):
+    new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation = \
+      DIY_to_easy(recipe['ingredient'], recipe['measurement'], recipe['quantity'],\
+                  recipe['descriptor'], recipe['preparation'], easy_magnitude, recipe['title'])
+    
+    new_ingredients_tmp = copy.deepcopy(new_ingredients)
+    for i in range(1,len(recipe['steps'])+1):
+        for j in range(len(recipe['detail_steps'][i])):
+            for each_ing in new_ingredients_tmp:
+                if each_ing in recipe['detail_steps'][i][j]['ingredient']:
+                    for each_old_ing in recipe['detail_steps'][i][j]['ingredient']:
+                        if each_old_ing not in new_ingredients: 
+                            each_old_ing_idx = recipe['ingredient'].index(each_old_ing)
+                            new_ingredients.append(each_old_ing)
+                            new_measure.append(recipe['measurement'][each_old_ing_idx])
+                            new_quantity.append(recipe['quantity'][each_old_ing_idx])
+                            new_descriptor.append(recipe['descriptor'][each_old_ing_idx])
+                            new_preparation.append(recipe['preparation'][each_old_ing_idx])
+    # removable
+    #print(new_ingredients)
+    #print(new_ingredients_tmp)
+    #print(recipe['ingredient'])
+    removable = []
+    for item in recipe['ingredient']:
+        if item not in new_ingredients:
+            removable.append(item)
+    print("remove list:")
+    print(removable)
+    for i in range(1,len(recipe['steps'])+1):
+        for item in removable:
+            if item in recipe['steps'][i]['ingredient']:
+                item_idx = recipe['steps'][i]['ingredient'].index(item)
+                recipe['steps'][i]['ingredient'].pop(item_idx)
+                recipe['steps'][i]['measurement'].pop(item_idx)
+                recipe['steps'][i]['quantity'].pop(item_idx)
+                recipe['steps'][i]['descriptor'].pop(item_idx)
+                recipe['steps'][i]['preparation'].pop(item_idx)
+        for j in range(len(recipe['detail_steps'][i])):
+            for item in removable:
+                if item in recipe['detail_steps'][i][j]['ingredient']:
+                    item_idx = recipe['detail_steps'][i][j]['ingredient'].index(item)
+                    recipe['detail_steps'][i][j]['ingredient'].pop(item_idx)
+                    recipe['detail_steps'][i][j]['measurement'].pop(item_idx)
+                    recipe['detail_steps'][i][j]['quantity'].pop(item_idx)
+                    recipe['detail_steps'][i][j]['descriptor'].pop(item_idx)
+                    recipe['detail_steps'][i][j]['preparation'].pop(item_idx)                    
+    recipe['ingredient'] = new_ingredients
+    recipe['quantity'] = new_quantity
+    recipe['descriptor'] = new_descriptor
+    recipe['preparation'] = new_preparation
+    recipe['measurement'] = new_measure        

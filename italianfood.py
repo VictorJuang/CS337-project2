@@ -1,4 +1,5 @@
 ITALIAN_FOOD ={
+    'style': 'italian',
     'style_check':[
         'italy',
         'italian',
