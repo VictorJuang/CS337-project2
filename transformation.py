@@ -16,6 +16,7 @@ from unimportant_words import UNIMPORTANT_WORDS
 from nltk.tokenize import sent_tokenize
 from DES_PRE import DES_PRE
 from fractions import Fraction
+from ingredients import myPart
 
 def change_method1(recipe, from_method, to_method):
     recipe['methods']['primary'] = [to_method if x == from_method else x for x in recipe['methods']['primary']]   
@@ -166,3 +167,266 @@ def change_style(recipe, FOOD_TYPE):
         recipe['detail_steps'][add_step][0]['descriptor'].append('None')
         recipe['detail_steps'][add_step][0]['preparation'].append('None') 
         recipe['detail_steps'][add_step][0]['methods']['other'].append('add')
+        
+
+
+def double_size(recipe):
+    for item in recipe['nutritions']:
+        print (item)
+        try:
+            item['nutrient-value'] = str(float(item['nutrient-value'])*2)
+        except:
+            print ("nutrient-value error")
+        try:
+            item['daily-value'] = str(float(item['daily-value'][:-2])*2)
+            item['daily-value'] += " %"
+        except:
+            print ("daily-value error")
+
+    def mixed_to_float(x):
+        return float(sum(Fraction(term) for term in x.split()))
+    count = 0
+    for item in recipe['quantity']:
+        print (item)
+        if item.find("(") != -1:
+            item = item[:item.find("(")-1]
+        if item.find("/") != -1:
+            item = mixed_to_float(item)
+        try:
+            ori = float(item)
+            recipe['quantity'][count] = str(float(item)*2)
+            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
+                recipe['measure'][count] += "s"
+        except:
+            print ("quantity error")
+        count += 1
+    
+    for idx in recipe['steps']:
+        count = 0
+        for item in recipe['steps'][idx]['quantity']:
+            #print (item)
+            if item.find("(") != -1:
+                item = item[:item.find("(")-1]
+            if item.find("/") != -1:
+                item = mixed_to_float(item)
+            try:
+                ori = float(item)
+                recipe['steps'][idx]['quantity'][count] = str(float(item)*2)
+                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
+                    recipe['steps'][idx]['measure'][count] += "s"
+            except:
+                pass
+                #print ("quantity error")              
+            count += 1  
+        for j in range(len(recipe['detail_steps'][idx])):
+            count = 0
+            for item in recipe['detail_steps'][idx][j]['quantity']:
+                #print (item)
+                if item.find("(") != -1:
+                    item = item[:item.find("(")-1]
+                if item.find("/") != -1:
+                    item = mixed_to_float(item)
+                try:
+                    ori = float(item)
+                    recipe['detail_steps'][idx][j]['quantity'][count] = str(float(item)*2)
+                    if recipe['detail_steps'][idx][j]['measure'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
+                        recipe['detail_steps'][idx][j]['measure'][count] += "s"
+                except:
+                    pass
+                    #print ("quantity error")              
+                count += 1 
+
+   
+def halve_size(recipe):
+    for item in recipe['nutritions']:
+        print (item)
+        try:
+            item['nutrient-value'] = str(float(item['nutrient-value'])/2)
+        except:
+            print ("nutrient-value error")
+        try:
+            item['daily-value'] = str(float(item['daily-value'][:-2])/2)
+            item['daily-value'] += " %"
+        except:
+            print ("daily-value error")
+    def mixed_to_float(x):
+        return float(sum(Fraction(term) for term in x.split()))
+    count = 0
+    for item in recipe['quantity']:
+        print (item)
+        if item.find("(") != -1:
+            item = item[:item.find("(")-1]
+        if item.find("/") != -1:
+            item = mixed_to_float(item)
+        try:
+            ori = float(item)
+            recipe['quantity'][count] = str(float(item)/2)
+            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
+                recipe['measure'][count] += "s"
+        except:
+            print ("quantity error")
+        count += 1
+    
+    for idx in recipe['steps']:
+        count = 0
+        for item in recipe['steps'][idx]['quantity']:
+            print (item)
+            if item.find("(") != -1:
+                item = item[:item.find("(")-1]
+            if item.find("/") != -1:
+                item = mixed_to_float(item)
+            try:
+                ori = float(item)
+                recipe['steps'][idx]['quantity'][count] = str(float(item)/2)
+                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
+                    recipe['steps'][idx]['measure'][count] += "s"
+            except:
+                print ("quantity error")
+            count += 1  
+        for j in range(len(recipe['detail_steps'][idx])):
+            count = 0
+            for item in recipe['detail_steps'][idx][j]['quantity']:
+                #print (item)
+                if item.find("(") != -1:
+                    item = item[:item.find("(")-1]
+                if item.find("/") != -1:
+                    item = mixed_to_float(item)
+                try:
+                    ori = float(item)
+                    recipe['detail_steps'][idx][j]['quantity'][count] = str(float(item)/2)
+                    if recipe['detail_steps'][idx][j]['measure'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
+                        recipe['detail_steps'][idx][j]['measure'][count] += "s"
+                except:
+                    pass
+                    #print ("quantity error")              
+                count += 1  
+
+def DIT_to_easy_wrapper(recipe, easy_magnitude):
+    recipe['ingredient'], recipe['measurement'], recipe['quantity'], recipe['descriptor'], recipe['preparation'] = \
+      DIY_to_easy(recipe['ingredient'], recipe['measurement'], recipe['quantity'],\
+                  recipe['descriptor'], recipe['preparation'], easy_magnitude, recipe['title'])
+    
+
+def DIY_to_easy(ingredients, measure, quantity, descriptor, preparation, easy_magnitude, title):
+    reduced_number = int (len(ingredients) * easy_magnitude)
+    not_removed_ingredient = []
+    for item in ingredients:
+        for word in title.lower().split():
+            if word in item.lower():
+                not_removed_ingredient.append(item)
+                break
+    print ("ingredients: ", ingredients)
+    print ("not_removed_ingredient", not_removed_ingredient)
+    print ("reduced_number: ", reduced_number)
+    print ("largest_reduced_number: ", len(ingredients) - len(not_removed_ingredient))
+    if len(ingredients) - len(not_removed_ingredient) <= reduced_number:
+        # remove all the other ingrdients/measure/quantity/descriptor/preparation
+        can_removed_ingredient = list(set(ingredients)-set(not_removed_ingredient))
+        counter = 0
+        new_ingredients = []
+        new_quantity = []
+        new_measure = []
+        new_descriptor = []
+        new_preparation = []
+        for item in ingredients:
+            if item in not_removed_ingredient:
+                new_ingredients.append(ingredients[counter])
+                new_quantity.append(quantity[counter])
+                new_measure.append(measure[counter])
+                new_descriptor.append(descriptor[counter])
+                new_preparation.append(preparation[counter])
+                counter += 1
+            else:
+                counter += 1
+                continue
+
+        
+    else:
+        # raandomly remove #not_removed_ingredient
+        can_removed_ingredient = list(set(ingredients) - set(not_removed_ingredient))
+        counter = 0
+        new_ingredients = []
+        new_quantity = []
+        new_measure = []
+        new_descriptor = []
+        new_preparation = []
+        not_removed_ingredient = not_removed_ingredient + can_removed_ingredient[reduced_number:]
+        for item in ingredients:
+            if item in not_removed_ingredient:
+                new_ingredients.append(ingredients[counter])
+                new_quantity.append(quantity[counter])
+                new_measure.append(measure[counter])
+                new_descriptor.append(descriptor[counter])
+                new_preparation.append(preparation[counter])
+                counter += 1
+            else:
+                counter += 1
+                continue
+        
+        
+            
+    return new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation 
+
+def my_part_wrapper(recipe, mode):
+    _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity = \
+        myPart(recipe['ingredient'], recipe['nutritions'], recipe['descriptor'], recipe['preparation'], recipe['measurement'], recipe['quantity'], mode=mode)
+    #print(recipe['ingredient'])
+    #print(_ingredients)
+    # prepare missing ingredient
+    missing_idx = []
+    for ing in _ingredients:
+        if ing not in recipe['ingredient']:
+            missing_idx.append(_ingredients.index(ing))
+            
+    # apply change
+    for i in range(1,len(recipe['steps'])+1):
+        for idx in range(len(recipe['steps'][i]['ingredient'])):
+            lookup_idx = recipe['ingredient'].index(recipe['steps'][i]['ingredient'][idx])
+            if recipe['ingredient'][lookup_idx] != _ingredients[lookup_idx] or \
+               recipe['descriptor'][lookup_idx] != _descriptor[lookup_idx] or \
+               recipe['preparation'][lookup_idx] != _preparation[lookup_idx] or \
+               recipe['measurement'][lookup_idx] != _measure[lookup_idx] or \
+               recipe['quantity'][lookup_idx] != _quantity[lookup_idx]:
+                recipe['steps'][i]['ingredient'][idx] = _ingredients[lookup_idx]
+                recipe['steps'][i]['descriptor'][idx] = _descriptor[lookup_idx]
+                recipe['steps'][i]['preparation'][idx] = _preparation[lookup_idx]
+                recipe['steps'][i]['measurement'][idx] = _measure[lookup_idx]
+                recipe['steps'][i]['quantity'][idx] = _quantity[lookup_idx]
+        for j in range(len(recipe['detail_steps'][i])):
+            for idx in range(len(recipe['detail_steps'][i][j]['ingredient'])):
+                lookup_idx = recipe['ingredient'].index(recipe['detail_steps'][i][j]['ingredient'][idx])
+                if recipe['ingredient'][lookup_idx] != _ingredients[lookup_idx] or \
+                   recipe['descriptor'][lookup_idx] != _descriptor[lookup_idx] or \
+                   recipe['preparation'][lookup_idx] != _preparation[lookup_idx] or \
+                   recipe['measurement'][lookup_idx] != _measure[lookup_idx] or \
+                   recipe['quantity'][lookup_idx] != _quantity[lookup_idx]:
+                    recipe['detail_steps'][i][j]['ingredient'][idx] = _ingredients[lookup_idx]
+                    recipe['detail_steps'][i][j]['descriptor'][idx] = _descriptor[lookup_idx]
+                    recipe['detail_steps'][i][j]['preparation'][idx] = _preparation[lookup_idx]
+                    recipe['detail_steps'][i][j]['measurement'][idx] = _measure[lookup_idx]
+                    recipe['detail_steps'][i][j]['quantity'][idx] = _quantity[lookup_idx]
+    # handle missing ingredient
+    for idx in missing_idx:
+        if len(recipe['steps']) > 2:
+            add_step = random.choice([1,2])  
+        else:
+            add_step = 1
+        recipe['steps'][add_step]['quantity'].append(_quantity[idx])
+        recipe['steps'][add_step]['measurement'].append(_measure[idx])
+        recipe['steps'][add_step]['ingredient'].append(_ingredients[idx])
+        recipe['steps'][add_step]['descriptor'].append(_descriptor[idx])
+        recipe['steps'][add_step]['preparation'].append(_preparation[idx])
+        recipe['methods']['other'].append('add')
+        recipe['steps'][add_step]['methods']['other'].append('add')
+        recipe['detail_steps'][add_step][0]['quantity'].append(_quantity[idx])
+        recipe['detail_steps'][add_step][0]['measurement'].append(_measure[idx])
+        recipe['detail_steps'][add_step][0]['ingredient'].append(_ingredients[idx])
+        recipe['detail_steps'][add_step][0]['descriptor'].append(_descriptor[idx])
+        recipe['detail_steps'][add_step][0]['preparation'].append(_preparation[idx]) 
+        recipe['detail_steps'][add_step][0]['methods']['other'].append('add')    
+    recipe['ingredient'] = _ingredients
+    recipe['nutritions'] = _nutritions
+    recipe['descriptor'] = _descriptor
+    recipe['preparation'] = _preparation
+    recipe['measurement'] = _measure
+    recipe['quantity'] = _quantity

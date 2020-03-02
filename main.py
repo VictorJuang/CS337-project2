@@ -16,107 +16,9 @@ from unimportant_words import UNIMPORTANT_WORDS
 from nltk.tokenize import sent_tokenize
 from DES_PRE import DES_PRE
 from fractions import Fraction
-from transformation import change_method1, change_method2, change_style
+from transformation import change_method1, change_method2, change_style, double_size, halve_size, DIT_to_easy_wrapper, my_part_wrapper
 from load_data import fetch_url, parse_data
 
-
-
-
-
-def double_size(recipe):
-    for item in recipe['nutritions']:
-        print (item)
-        try:
-            item['nutrient-value'] = str(float(item['nutrient-value'])*2)
-        except:
-            print ("nutrient-value error")
-        try:
-            item['daily-value'] = str(float(item['daily-value'][:-2])*2)
-            item['daily-value'] += " %"
-        except:
-            print ("daily-value error")
-
-    def mixed_to_float(x):
-        return float(sum(Fraction(term) for term in x.split()))
-    count = 0
-    for item in recipe['quantity']:
-        print (item)
-        if item.find("(") != -1:
-            item = item[:item.find("(")-1]
-        if item.find("/") != -1:
-            item = mixed_to_float(item)
-        try:
-            ori = float(item)
-            recipe['quantity'][count] = str(float(item)*2)
-            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
-                recipe['measure'][count] += "s"
-        except:
-            print ("quantity error")
-        count += 1
-    
-    for idx in recipe['steps']:
-        count = 0
-        for item in recipe['steps'][idx]['quantity']:
-            print (item)
-            if item.find("(") != -1:
-                item = item[:item.find("(")-1]
-            if item.find("/") != -1:
-                item = mixed_to_float(item)
-            try:
-                ori = float(item)
-                recipe['steps'][idx]['quantity'][count] = str(float(item)*2)
-                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
-                    recipe['steps'][idx]['measure'][count] += "s"
-            except:
-                print ("quantity error")
-            count += 1        
-    
-def halve_size(recipe):
-    for item in recipe['nutritions']:
-        print (item)
-        try:
-            item['nutrient-value'] = str(float(item['nutrient-value'])/2)
-        except:
-            print ("nutrient-value error")
-        try:
-            item['daily-value'] = str(float(item['daily-value'][:-2])/2)
-            item['daily-value'] += " %"
-        except:
-            print ("daily-value error")
-    def mixed_to_float(x):
-        return float(sum(Fraction(term) for term in x.split()))
-    count = 0
-    for item in recipe['quantity']:
-        print (item)
-        if item.find("(") != -1:
-            item = item[:item.find("(")-1]
-        if item.find("/") != -1:
-            item = mixed_to_float(item)
-        try:
-            ori = float(item)
-            recipe['quantity'][count] = str(float(item)/2)
-            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
-                recipe['measure'][count] += "s"
-        except:
-            print ("quantity error")
-        count += 1
-    
-    for idx in recipe['steps']:
-        count = 0
-        for item in recipe['steps'][idx]['quantity']:
-            print (item)
-            if item.find("(") != -1:
-                item = item[:item.find("(")-1]
-            if item.find("/") != -1:
-                item = mixed_to_float(item)
-            try:
-                ori = float(item)
-                recipe['steps'][idx]['quantity'][count] = str(float(item)/2)
-                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
-                    recipe['steps'][idx]['measure'][count] += "s"
-            except:
-                print ("quantity error")
-            count += 1    
   
 def print_direction(direction_dict):
     count = 1
@@ -294,26 +196,45 @@ def main():
         elif option == "2":
             while True:
                 print('Select transformation type.')
-                print('1. To vegetarian ')
-                print('2. From vegetarian ')
-                print('3. To Japanese style')
-                print('4. To Indian style')
-                print('5. Easy to DIY')
-                print('6. Double size')
-                print('7. Half size')
-                print('8. Change Cooking method 1')
-                print('9. Change Cooking method 2')
-                print('10. Go back')
+                print('1. To vegetarian')
+                print('2. To vegan')
+                print('3. To non-vegetarian')
+                print('4. To healthy')
+                print('5. From healthy')
+                print('6. To Japanese style')
+                print('7. To Indian style')
+                print('8. Easy to DIY')
+                print('9. Double size')
+                print('10. Half size')
+                print('11. Change Cooking method 1')
+                print('12. Change Cooking method 2')
+                print('13. Go back')
                 sub_option = input()
-                if sub_option == '3':
-                    change_style(recipe, JP_FOOD)
+                if sub_option == '1':
+                    my_part_wrapper(recipe, "to_vegetarian")
+                elif sub_option == '2':
+                    my_part_wrapper(recipe, "to_vegan")
+                elif sub_option == '3':
+                    my_part_wrapper(recipe, "from_vegetarian")
                 elif sub_option == '4':
-                    change_style(recipe, INDIAN_FOOD)
+                    my_part_wrapper(recipe, "to_healthy")
+                elif sub_option == '5':
+                    my_part_wrapper(recipe, "from_healthy")
                 elif sub_option == '6':
-                    double_size(recipe)
+                    change_style(recipe, JP_FOOD)
                 elif sub_option == '7':
+                    change_style(recipe, INDIAN_FOOD)
+                elif sub_option == '8':   
+                    ratio_input = -1
+                    while ratio_input < 1 and  ratio_input > 0:
+                        print('Enter a number between 0 and 1')
+                        ratio_input = input()
+                    DIT_to_easy_wrapper(recipe, ratio_input)
+                elif sub_option == '9':
+                    double_size(recipe)
+                elif sub_option == '10':
                     halve_size(recipe)
-                elif sub_option == '8':
+                elif sub_option == '11':
                     print('Enter a primary cooking method.')
                     print(recipe['methods']['primary'])
                     from_method = input()
@@ -324,9 +245,9 @@ def main():
                     print(METHODS["primary"])
                     to_method = input()
                     change_method1(recipe, from_method, to_method)
-                elif sub_option == '9':
+                elif sub_option == '12':
                     change_method2(recipe)
-                elif sub_option == '10':
+                elif sub_option == '13':
                     break
                 
         elif option == "3":

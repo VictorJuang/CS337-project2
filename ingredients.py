@@ -184,18 +184,18 @@ def myPart(ingredients, nutritions, descriptor, preparation, measure, quantity, 
         
         elif mode == "from_vegetarian":  
             _ingredients += [VegeToMeat()]
-            _descriptor = _descriptor + [None] * (len(_ingredients) - len(ingredients))
-            _preparation = _preparation + [None] * (len(_ingredients) - len(ingredients))
-            _measure = _measure + [None] * (len(_ingredients) - len(ingredients))
-            _quantity = _quantity + [None] * (len(_ingredients) - len(ingredients))
+            _descriptor = _descriptor + ['None'] * (len(_ingredients) - len(ingredients))
+            _preparation = _preparation + ['None'] * (len(_ingredients) - len(ingredients))
+            _measure = _measure + ['None'] * (len(_ingredients) - len(ingredients))
+            _quantity = _quantity + ['None'] * (len(_ingredients) - len(ingredients))
             break
         
         elif mode == "from_healthy":
             _ingredients += fromHealthy()
-            _descriptor = _descriptor + [None] * (len(_ingredients) - len(ingredients))
-            _preparation = _preparation + [None] * (len(_ingredients) - len(ingredients))
-            _measure = _measure + [None] * (len(_ingredients) - len(ingredients))
-            _quantity = _quantity + [None] * (len(_ingredients) - len(ingredients))
+            _descriptor = _descriptor + ['None'] * (len(_ingredients) - len(ingredients))
+            _preparation = _preparation + ['None'] * (len(_ingredients) - len(ingredients))
+            _measure = _measure + ['None'] * (len(_ingredients) - len(ingredients))
+            _quantity = _quantity + ['None'] * (len(_ingredients) - len(ingredients))
             break
     print("changed ingredients: ", _ingredients)
         
@@ -206,32 +206,33 @@ def myPart(ingredients, nutritions, descriptor, preparation, measure, quantity, 
 
     return _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity
 
-urls = [
-        #sample_url,
-        "https://www.allrecipes.com/recipe/53729/fish-tacos/",
-        #"https://www.allrecipes.com/recipe/259473/maple-apple-turkey-sausage/",
-        #"https://www.allrecipes.com/recipe/50523/clarks-quiche/",
-        "https://www.allrecipes.com/recipe/11758/baked-ziti-i/",
-        "https://www.allrecipes.com/recipe/15925/creamy-au-gratin-potatoes/",
-        "https://www.allrecipes.com/recipe/86230/szechwan-shrimp/",
-        "https://www.allrecipes.com/recipe/23979/shrimp-fettuccine-alfredo/",
-        "https://www.allrecipes.com/recipe/12816/cioppino/",
-    ]
-
-try: 
-    mode = sys.argv[1]
-    assert(mode in ["to_vegetarian", "from_vegetarian", "to_healthy", "from_healthy", "to_vegan"])
-except: 
-    print("Usage: python3 ingredients.py to_vegetarian | from_vegetarian | to_healthy | from_healthy | to_vegan")
-    exit(1)
-
-for url in urls:
-    ingredients = get_ingredient(url)
-    nutritions = scrape_nutrition(url)
-
-    print("------------------- Start of this receipe -------------------")
-
-    print("original ingredients: ", ingredients)
+def main():
+    urls = [
+            #sample_url,
+            "https://www.allrecipes.com/recipe/53729/fish-tacos/",
+            #"https://www.allrecipes.com/recipe/259473/maple-apple-turkey-sausage/",
+            #"https://www.allrecipes.com/recipe/50523/clarks-quiche/",
+            "https://www.allrecipes.com/recipe/11758/baked-ziti-i/",
+            "https://www.allrecipes.com/recipe/15925/creamy-au-gratin-potatoes/",
+            "https://www.allrecipes.com/recipe/86230/szechwan-shrimp/",
+            "https://www.allrecipes.com/recipe/23979/shrimp-fettuccine-alfredo/",
+            "https://www.allrecipes.com/recipe/12816/cioppino/",
+        ]
+    
+    try: 
+        mode = sys.argv[1]
+        assert(mode in ["to_vegetarian", "from_vegetarian", "to_healthy", "from_healthy", "to_vegan"])
+    except: 
+        print("Usage: python3 ingredients.py to_vegetarian | from_vegetarian | to_healthy | from_healthy | to_vegan")
+        exit(1)
+    
+    for url in urls:
+        ingredients = get_ingredient(url)
+        nutritions = scrape_nutrition(url)
+    
+        print("------------------- Start of this receipe -------------------")
+    
+        print("original ingredients: ", ingredients)
 
     print("original nutrition: ")
     for n in nutritions:
