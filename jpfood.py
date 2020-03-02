@@ -39,6 +39,6 @@ JP_FOOD ={
         ['1/4', 'cup', 'miso paste'],
         ['1', 'pinch', 'onito shavings (dry fish flakes)'],
         ['1', 'tablespoons', 'mirin (japanese sweet wine)']
-    ]
+    ],
     'primary_methods': ['broil', 'boil', 'fry', 'simmer', 'grill', 'bake'],
 } 
