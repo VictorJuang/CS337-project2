@@ -216,6 +216,8 @@ def myPart(ingredients, nutritions, descriptor, preparation, measure, quantity, 
     _nutritions = update_nutrition(_nutritions, mode)
     for n in _nutritions:
         print(n)
+    
+    _quantity = list(map(lambda x:random.randint(1, 4)/random.randint(1, 2), [None] * len(_ingredients)))
 
     return _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity
 
