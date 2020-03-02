@@ -1,0 +1,62 @@
+SOUTHERN_FOOD ={
+    'style_check':[
+        'southern',
+        'tidewater',
+        'appalachian', 
+        'creole', 
+        'lowcountry', 
+        'floribbean',
+        'grits',
+        'okra',
+        'hushpupp',
+        'country ham',
+        'stuffed ham',
+        'pimento cheese',
+        'fried green tomatoes',
+        'red-eye gravy',
+        'poor man', 
+        'bird-eye gravy', 
+        'bottom sop', 
+        'cedar gravy', 
+        'red ham gravy'
+    ],
+    'change_dict':{
+        'chicken': ['fried chicken'],
+        'pork': ['stuffed ham', 'country ham', 'bacon', 'salt pork', 'ham'],
+        'potato': ['mashed potatoes', 'sweet potatoes'],
+        'bread': ['corn pone'],
+        'toast': ['corn pone'],
+        'pea': ['black-eyed peas'],
+        'tomato': ['fried green tomatoes'],
+        'cheese': ['pimento cheese'],
+        'fish': ['catfish'],
+        'tea': ['sweet tea']
+    },
+    'add_item_method': ['mix', 'stir', 'blend', 'combine'],
+    'add_item_ingred':[
+        ['1', 'cup', 'black-eyed peas'],
+        ['1', 'cup', 'green beans'],
+        ['1', 'None', 'red pepper'],
+        ['1', 'None', 'green pepper'],
+        ['1', 'teaspoon', 'red-eye gravy'],
+        ['1', 'teaspoon', 'bottom sop'],
+        ['1', 'teaspoon', 'poor man gravy'],
+        ['1', 'teaspoon', 'cedar gravy'],
+        ['1', 'teaspoon', 'red ham gravy'],
+        ['1', 'teaspoon', 'country gravy'],
+        ['1', 'package', 'okra'],
+        ['1', 'cup', 'grits'],
+        ['1', 'teaspoon', 'bird-eye gravy']  
+    ],
+    'primary_methods': [
+        "sauté",
+        "broil",
+        "boil",
+        "poach",
+        "fry",
+        "bake",
+        "toast",
+        "simmer",
+        "grill"
+    ]
+} 
