@@ -50,7 +50,7 @@ def change_style(recipe, FOOD_TYPE):
     # search ingredient
     for check_word in FOOD_TYPE['style_check']:
         for ingred in recipe['ingredient']:
-            if check_word in ingred:
+            if check_word in ingred.lower():
                 print('This recipe is in ' + FOOD_TYPE['style'] + ' style.')
                 return         
     
@@ -195,8 +195,9 @@ def double_size(recipe):
         try:
             ori = float(item)
             recipe['quantity'][count] = str(float(item)*2)
-            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
-                recipe['measure'][count] += "s"
+            if recipe['measurement'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
+                #print('hhhhhhhh')
+                recipe['measurement'][count] += "s"
         except:
             print ("quantity error")
         count += 1
@@ -212,8 +213,8 @@ def double_size(recipe):
             try:
                 ori = float(item)
                 recipe['steps'][idx]['quantity'][count] = str(float(item)*2)
-                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
-                    recipe['steps'][idx]['measure'][count] += "s"
+                if recipe['steps'][idx]['measurement'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
+                    recipe['steps'][idx]['measurement'][count] += "s"
             except:
                 pass
                 #print ("quantity error")              
@@ -229,8 +230,8 @@ def double_size(recipe):
                 try:
                     ori = float(item)
                     recipe['detail_steps'][idx][j]['quantity'][count] = str(float(item)*2)
-                    if recipe['detail_steps'][idx][j]['measure'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
-                        recipe['detail_steps'][idx][j]['measure'][count] += "s"
+                    if recipe['detail_steps'][idx][j]['measurement'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
+                        recipe['detail_steps'][idx][j]['measurement'][count] += "s"
                 except:
                     pass
                     #print ("quantity error")              
@@ -261,8 +262,8 @@ def halve_size(recipe):
         try:
             ori = float(item)
             recipe['quantity'][count] = str(float(item)/2)
-            if recipe['measure'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
-                recipe['measure'][count] += "s"
+            if recipe['measurement'][count] != "None" and float(recipe['quantity'][count]) > 1 and ori <= 1:
+                recipe['measurement'][count] += "s"
         except:
             print ("quantity error")
         count += 1
@@ -278,8 +279,8 @@ def halve_size(recipe):
             try:
                 ori = float(item)
                 recipe['steps'][idx]['quantity'][count] = str(float(item)/2)
-                if recipe['steps'][idx]['measure'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
-                    recipe['steps'][idx]['measure'][count] += "s"
+                if recipe['steps'][idx]['measurement'][count] != "None" and float(recipe['steps'][idx]['quantity'][count]) > 1 and ori <= 1:
+                    recipe['steps'][idx]['measurement'][count] += "s"
             except:
                 print ("quantity error")
             count += 1  
@@ -294,8 +295,8 @@ def halve_size(recipe):
                 try:
                     ori = float(item)
                     recipe['detail_steps'][idx][j]['quantity'][count] = str(float(item)/2)
-                    if recipe['detail_steps'][idx][j]['measure'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
-                        recipe['detail_steps'][idx][j]['measure'][count] += "s"
+                    if recipe['detail_steps'][idx][j]['measurement'][count] != "None" and float(recipe['detail_steps'][idx][j]['quantity'][count]) > 1 and ori <= 1:
+                        recipe['detail_steps'][idx][j]['measurement'][count] += "s"
                 except:
                     pass
                     #print ("quantity error")              
@@ -334,7 +335,7 @@ def DIY_to_easy(ingredients, measure, quantity, descriptor, preparation, easy_ma
                 counter += 1
                 continue
 
-        
+        my_remove_ingredients = list(set(ingredients) - set(not_removed_ingredient))
     else:
         # raandomly remove #not_removed_ingredient
         can_removed_ingredient = list(set(ingredients) - set(not_removed_ingredient))
@@ -356,10 +357,12 @@ def DIY_to_easy(ingredients, measure, quantity, descriptor, preparation, easy_ma
             else:
                 counter += 1
                 continue
+                
+        my_remove_ingredients = list(set(ingredients) - set(not_removed_ingredient))
         
         
             
-    return new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation 
+    return new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation, my_remove_ingredients
 
 def my_part_wrapper(recipe, mode):
     _ingredients, _nutritions, _descriptor, _preparation, _measure, _quantity = \
@@ -410,14 +413,17 @@ def my_part_wrapper(recipe, mode):
         recipe['steps'][add_step]['ingredient'].append(_ingredients[idx])
         recipe['steps'][add_step]['descriptor'].append(_descriptor[idx])
         recipe['steps'][add_step]['preparation'].append(_preparation[idx])
-        recipe['methods']['other'].append('add')
-        recipe['steps'][add_step]['methods']['other'].append('add')
+        if 'add' not in recipe['methods']['other']:
+            recipe['methods']['other'].append('add')
+        if 'add' not in recipe['steps'][add_step]['methods']['other']:    
+            recipe['steps'][add_step]['methods']['other'].append('add')
         recipe['detail_steps'][add_step][0]['quantity'].append(_quantity[idx])
         recipe['detail_steps'][add_step][0]['measurement'].append(_measure[idx])
         recipe['detail_steps'][add_step][0]['ingredient'].append(_ingredients[idx])
         recipe['detail_steps'][add_step][0]['descriptor'].append(_descriptor[idx])
         recipe['detail_steps'][add_step][0]['preparation'].append(_preparation[idx]) 
-        recipe['detail_steps'][add_step][0]['methods']['other'].append('add')    
+        if 'add' not in recipe['detail_steps'][add_step][0]['methods']['other']:
+            recipe['detail_steps'][add_step][0]['methods']['other'].append('add')    
     recipe['ingredient'] = _ingredients
     recipe['nutritions'] = _nutritions
     recipe['descriptor'] = _descriptor
@@ -426,7 +432,7 @@ def my_part_wrapper(recipe, mode):
     recipe['quantity'] = _quantity
     
 def DIY_to_easy_wrapper(recipe, easy_magnitude):
-    new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation = \
+    new_ingredients, new_measure, new_quantity, new_descriptor, new_preparation, my_remove_ingredients = \
       DIY_to_easy(recipe['ingredient'], recipe['measurement'], recipe['quantity'],\
                   recipe['descriptor'], recipe['preparation'], easy_magnitude, recipe['title'])
     
@@ -435,6 +441,7 @@ def DIY_to_easy_wrapper(recipe, easy_magnitude):
         for j in range(len(recipe['detail_steps'][i])):
             for each_ing in new_ingredients_tmp:
                 if each_ing in recipe['detail_steps'][i][j]['ingredient']:
+                    print(recipe['detail_steps'][i][j]['ingredient'])
                     for each_old_ing in recipe['detail_steps'][i][j]['ingredient']:
                         if each_old_ing not in new_ingredients: 
                             each_old_ing_idx = recipe['ingredient'].index(each_old_ing)
@@ -443,6 +450,18 @@ def DIY_to_easy_wrapper(recipe, easy_magnitude):
                             new_quantity.append(recipe['quantity'][each_old_ing_idx])
                             new_descriptor.append(recipe['descriptor'][each_old_ing_idx])
                             new_preparation.append(recipe['preparation'][each_old_ing_idx])
+    
+    #for i in range(1,len(recipe['steps'])+1):
+    #    for j in range(len(recipe['detail_steps'][i])):
+    #        flag_remove = True
+    #        for each_ing in recipe['detail_steps'][i][j]['ingredient']:
+    #            if each_ing not in my_remove_ingredients
+    #                flag_remove = False
+    #                break
+    #        if flag_remove:
+    #            # remove recipe['detail_steps'][i][j]:
+                
+                
     # removable
     #print(new_ingredients)
     #print(new_ingredients_tmp)
@@ -462,6 +481,7 @@ def DIY_to_easy_wrapper(recipe, easy_magnitude):
                 recipe['steps'][i]['quantity'].pop(item_idx)
                 recipe['steps'][i]['descriptor'].pop(item_idx)
                 recipe['steps'][i]['preparation'].pop(item_idx)
+        remove_idx_list = []
         for j in range(len(recipe['detail_steps'][i])):
             for item in removable:
                 if item in recipe['detail_steps'][i][j]['ingredient']:
@@ -470,7 +490,14 @@ def DIY_to_easy_wrapper(recipe, easy_magnitude):
                     recipe['detail_steps'][i][j]['measurement'].pop(item_idx)
                     recipe['detail_steps'][i][j]['quantity'].pop(item_idx)
                     recipe['detail_steps'][i][j]['descriptor'].pop(item_idx)
-                    recipe['detail_steps'][i][j]['preparation'].pop(item_idx)                    
+                    recipe['detail_steps'][i][j]['preparation'].pop(item_idx)
+                    if len(recipe['detail_steps'][i][j]['ingredient']) == 0:
+                        remove_idx_list.append(j)
+        remove_idx_list.sort(reverse=True) 
+        print(remove_idx_list)
+        for j in remove_idx_list:
+            recipe['detail_steps'][i].pop(j) 
+                      
     recipe['ingredient'] = new_ingredients
     recipe['quantity'] = new_quantity
     recipe['descriptor'] = new_descriptor

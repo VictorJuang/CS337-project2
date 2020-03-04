@@ -6,5 +6,6 @@ UNIMPORTANT_WORDS = [
     'chopped',
     'fresh',
     'dried',
-    'frying'
+    'frying',
+    'medium'
 ]

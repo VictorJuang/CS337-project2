@@ -59,7 +59,7 @@ def parse_data(soup, url):
     for i in range(len(ingredients)):
         update_ingredient.append(ingredients[i][28:-7])    
  
-    measurement = ['package', 'packages', 'carton', 'cartons', 'slice', 'slices', 'can', 'cans', 'teaspoon', 'tablespoon', 'cup', 'ounce', 'pint', 'quart', 'gallon', 'pound', 'dash', 'pinch', 'drop', 'peck', 'smidgen', 'saltspoon', 'scruple', 'coffeespoon', 'dessertspoon', 'wineglass', 'gill', 'teacup', 'pottle', 'dram', 'teaspoons', 'tablespoons', 'cups', 'ounces', 'pints', 'quarts', 'gallons', 'pounds', 'dashes', 'pinches', 'drops', 'pecks', 'smidgens', 'saltspoons', 'scruples', 'coffeespoons', 'dessertspoons', 'wineglasses', 'gills', 'teacups', 'pottles', 'drams']
+    measurement = ['cloves', 'clove', 'package', 'packages', 'carton', 'cartons', 'slice', 'slices', 'can', 'cans', 'teaspoon', 'tablespoon', 'cup', 'ounce', 'pint', 'quart', 'gallon', 'pound', 'dash', 'pinch', 'drop', 'peck', 'smidgen', 'saltspoon', 'scruple', 'coffeespoon', 'dessertspoon', 'wineglass', 'gill', 'teacup', 'pottle', 'dram', 'teaspoons', 'tablespoons', 'cups', 'ounces', 'pints', 'quarts', 'gallons', 'pounds', 'dashes', 'pinches', 'drops', 'pecks', 'smidgens', 'saltspoons', 'scruples', 'coffeespoons', 'dessertspoons', 'wineglasses', 'gills', 'teacups', 'pottles', 'drams']
 
     measure = []
     ingred = []
@@ -158,7 +158,7 @@ def parse_data(soup, url):
         count += 1    
     
     recipe['ingredient'] = copy.deepcopy(rerefined_ingred)
-    recipe['measurement'] = measurement
+    recipe['measurement'] = measure
     recipe['quantity'] = quantity
     recipe['descriptor'] = copy.deepcopy(Descriptor)
     recipe['preparation'] = copy.deepcopy(Preparation)

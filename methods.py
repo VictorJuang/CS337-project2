@@ -50,6 +50,7 @@ METHODS = {
     "shred",
     "combine",
     "repeat",
-    "serve"
+    "serve",
+    "place"
   ]
 }

@@ -101,7 +101,15 @@ def print_step(step_dict):
         for time in step_dict[item]['time']:
             print('    ' + time)
         print()
-  
+        
+#def update_step(step_dict):
+#    for i in range(1, len(step_dict)+1):
+#        remove_keys = []
+#        for j in range(len(step_dict[i])):
+#            if 
+        
+
+ 
 def main():
     # get web info
     soup, url = fetch_url()
